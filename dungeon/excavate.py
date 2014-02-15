@@ -26,8 +26,12 @@ from tempfile import TemporaryFile, NamedTemporaryFile
 
 from bs4 import BeautifulSoup as bs
 from PIL import Image
+from pkg_resources import resource_stream
 
 from dungeon import svgtools
+
+# SVG template name for the map
+TEMPLATE_FILE = 'template.svg'
 
 # Width of the inside shading (relative to the tile size)
 BLUR_INSIDE_WIDTH = 0.5
@@ -40,6 +44,7 @@ HELP_TEXT="Render a dungeon from some basic images."
 RANDOM_SEED=8675309
 
 TRACING_FORMAT='ppm'
+
 
 def image_trace(image_data):
     """
@@ -97,7 +102,7 @@ def image_to_svg(image_data):
         + base64.b64encode(image_data).decode('ascii'))
 
 
-def render_room(template_data, ground_data, wall_data, clip_data, tile_size):
+def render_room(ground_data, wall_data, clip_data, tile_size):
     """ Fill out the template document with the ground and wall textures. """
     # Check that all the sizes match
     sizes = set(map(image_size, (ground_data, wall_data, clip_data)))
@@ -120,7 +125,9 @@ def render_room(template_data, ground_data, wall_data, clip_data, tile_size):
     # Put some bitmaps in
     # The walls
     wall_svg = image_to_svg(wall_data)
-    template_doc = bs(template_data, 'xml')
+    with resource_stream(__name__, TEMPLATE_FILE) as template_data:
+        template_doc = bs(template_data, 'xml')
+    
     template_doc(id='image-walls')[0]['xlink:href'] = wall_svg
     
     # The floor
@@ -157,16 +164,12 @@ def render_room(template_data, ground_data, wall_data, clip_data, tile_size):
     
 
 def render_room_from_paths(
-        template_path,
         ground_path,
         wall_path,
         clip_path,
         output_path,
         tile_size):
     """ Load template and textures and export the rendered result. """
-    with open(template_path, 'rU') as tp:
-        template_data = tp.read()
-        
     with open(ground_path, 'rb') as gp:
         ground_data = gp.read()
         
@@ -177,7 +180,6 @@ def render_room_from_paths(
         clip_data = cp.read()
         
     room = render_room(
-        template_data,
         ground_data,
         wall_data,
         clip_data,
@@ -190,8 +192,7 @@ def render_room_from_paths(
 def main():
     """ Parse arguments and get things going. """
     parser = argparse.ArgumentParser(description=HELP_TEXT)
-    
-    parser.add_argument('template' , help="Template SVG file")
+
     parser.add_argument('ground'   , help="Ground texture")
     parser.add_argument('wall'     , help="Wall texture")
     parser.add_argument('floorplan', help="Mask for the floor plan")
@@ -206,7 +207,6 @@ def main():
     args = parser.parse_args()
     
     return render_room_from_paths(
-        args.template,
         args.ground,
         args.wall,
         args.floorplan,

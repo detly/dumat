@@ -23,6 +23,10 @@ setup(
     version = "1.0",
     packages = find_packages(),
     
+    package_data = {
+        'dungeon': ['template.svg'],
+    },
+    
     install_requires = [
         'BeautifulSoup4',
         'lxml',
