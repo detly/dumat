@@ -47,24 +47,23 @@ WALL_STROKE_WIDTH = 0.02
 # Size of jitter displacement
 JITTER_SCALE = WALL_STROKE_WIDTH/4
 
-HELP_TEXT="Render a dungeon from some basic images."
-
-RANDOM_SEED=8675309
+HELP_TEXT="""\
+The dungeon excavator takes a floor image, a wall image and a floorplan and
+renders a dungeon map. The floorplan image is used to create shading to give the
+impression of depth, and an outline is added with a bit of random jittering to
+give a "hand drawn" effect. Note that all image sizes (including the floorplan)
+must match exactly."""
 
 TRACING_FORMAT='ppm'
 
-
-def image_trace(image_data):
+def image_trace(image):
     """
-    Uses "potrace" to trace the image data in the buffer. Returns a
-    beautifulsoup document for the SVG path.
-    """
-    data = BytesIO(image_data)
-    im = Image.open(data)
-    
+    Uses "potrace" to trace the given PIL.Image object. Returns a beautifulsoup
+    document for the SVG path.
+    """ 
     with TemporaryFile('w+b') as vfile:
         with TemporaryFile('w+b') as rfile:
-            im.save(rfile, TRACING_FORMAT)
+            image.save(rfile, TRACING_FORMAT)
             rfile.seek(0)
             
             ptproc = subprocess.check_call(
@@ -93,11 +92,68 @@ def image_trace(image_data):
     return path_doc
 
 
+def extract_image_path(image_data):
+    """
+    Returns the 'd' attribute of an SVG path for the given image data. If the
+    data represents an SVG file, the first path found is returned. If it is a
+    raster image, it is traced using 'potrace' and the path from that is
+    returned.
+    """
+    try:
+        # Try to open as a raster image
+        data = BytesIO(image_data)
+        im = Image.open(data)
+    except IOError:
+        # Pillow throws an IOError if it doesn't recognise the image format,
+        # which might mean it's an SVG file already.
+        path_doc = bs(image_data, 'xml')
+    else:
+        path_doc = image_trace(im)
+
+    traced_paths = path_doc('path')
+    
+    try:
+        traced_path = traced_paths[0]
+    except IndexError:
+        raise ValueError("Cannot extract path from floorplan file")
+    
+    traced_path_d = traced_path['d']
+    traced_path_tx = traced_path.get('transform', '')
+    traced_path_parent_tx = traced_path.parent.get('transform', '')
+    
+    # Apply the transforms to the path to simplify it
+    transformed_path = svgtools.fuseTransform(
+        traced_path_tx,
+        traced_path_d
+    )
+    
+    transformed_path = svgtools.fuseTransform(
+        traced_path_parent_tx,
+        transformed_path
+    )
+
+    return transformed_path
+
+
 def image_size(image_data):
     """ Given a buffer, returns the size of the image represented. """
-    data = BytesIO(image_data)
-    im = Image.open(data)
-    return im.size
+    try:
+        data = BytesIO(image_data)
+        im = Image.open(data)
+    except IOError:
+        # Probably SVG
+        svgdoc = bs(image_data, 'xml')
+        try:
+            top = svgdoc('svg')[0]
+        except IndexError:
+            raise ValueError("Cannot identify image size")
+        else:
+            return (
+                int(top['width']),
+                int(top['height'])
+            )
+    else:
+        return im.size
 
 
 def image_to_svg(image_data):
@@ -129,15 +185,7 @@ def render_room(ground_data, wall_data, clip_data, tile_size):
         raise ValueError("Image sizes don't match")
     
     # Trace paths for the floor plan
-    path_doc = image_trace(clip_data)
-    traced_paths = path_doc('path')
-    assert len(traced_paths) == 1    
-    traced_path = traced_paths[0]
-    traced_path_d = traced_path['d']
-    traced_path_tx = traced_path.parent['transform']
-    
-    # Apply the transform to the path to simplify it
-    floorplan_path = svgtools.fuseTransform(traced_path_tx, traced_path_d)
+    floorplan_path = extract_image_path(clip_data)
     
     # Replace paths in the original image
     
@@ -229,14 +277,26 @@ def main():
     """ Parse arguments and get things going. """
     parser = argparse.ArgumentParser(description=HELP_TEXT)
 
-    parser.add_argument('ground'   , help="Ground texture")
-    parser.add_argument('wall'     , help="Wall texture")
-    parser.add_argument('floorplan', help="Mask for the floor plan")
-    parser.add_argument('output'   , help="Output file")
+    parser.add_argument('ground'   , help="Ground texture (bitmap image)")
+    parser.add_argument('wall'     , help="Wall texture (bitmap image)")
+
+    parser.add_argument(
+        'floorplan',
+        help=(
+            "Mask for the floor plan. This can be a bitmap image or an SVG "
+            "image. If it is a bitmap, it should be black where you want the "
+            "ground to show and white everywhere else. The 'potrace' executable"
+            " must be installed to be able to use bitmaps. If the file is an "
+            "SVG file, the first path in the file will be used."
+        )
+    )
+    
+    parser.add_argument('output', help="Output file (Inkscape SVG)")
     
     parser.add_argument('-s', '--tile-size',
-                        help="the size of a single grid square in px (default "
-                             "100px)",
+                        help="The size of a single grid square in px (default "
+                             "100px). Used to scale the shading and wall "
+                             "outline.",
                         type=int,
                         default=100)
     
