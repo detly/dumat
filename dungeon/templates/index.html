@@ -3,25 +3,30 @@
 {% block page_title %}Dungeon excavator{% endblock %}
 
 {% block content %}
-<form>
+<form action="map.svg" method="POST" enctype="multipart/form-data">
     <p>
     <label for="size">Tile size</label>
-    <input id="size" type="number" min="0" step="1" value="100">
+    <input
+        id="size"
+        name="size"
+        type="number"
+        min="0" step="1" value="100"
+        required="true">
     </p>
     
     <p>
     <label for="floor">Floor texture</label>
-    <input id="floor" type="file" required="true">
+    <input id="floor" name="floor" type="file" required="true">
     </p>
     
     <p>
     <label for="walls">Wall texture</label>
-    <input id="walls" type="file" required="true">
+    <input id="walls" name="walls" type="file" required="true">
     </p>
     
     <p>
     <label for="floorplan">Floorplan</label>
-    <input id="floorplan" type="file" required="true">
+    <input id="floorplan" name="floorplan" type="file" required="true">
     </p>
     
     <p>
