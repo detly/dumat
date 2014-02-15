@@ -20,6 +20,7 @@ jittering to give a "hand drawn" effect.
 The dungeon excavator runs under Python 3. It requires:
 
   - BeautifulSoup4
+  - cssutils
   - lxml
   - pillow
 

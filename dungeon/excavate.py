@@ -19,12 +19,14 @@ dungeon excavator. If not, see <http://www.gnu.org/licenses/>.
 import argparse
 import base64
 from io import BytesIO
+import logging.config
 import os.path
 import subprocess
 import sys
 from tempfile import TemporaryFile, NamedTemporaryFile
 
 from bs4 import BeautifulSoup as bs
+import cssutils
 from PIL import Image
 from pkg_resources import resource_stream
 
@@ -38,6 +40,12 @@ BLUR_INSIDE_WIDTH = 0.5
 
 # Width of the outside shading (relative to the tile size)
 BLUR_OUTSIDE_WIDTH = 0.15
+
+# Width of the wall outline
+WALL_STROKE_WIDTH = 0.02
+
+# Size of jitter displacement
+JITTER_SCALE = WALL_STROKE_WIDTH/4
 
 HELP_TEXT="Render a dungeon from some basic images."
 
@@ -104,6 +112,17 @@ def image_to_svg(image_data):
 
 def render_room(ground_data, wall_data, clip_data, tile_size):
     """ Fill out the template document with the ground and wall textures. """
+    # Disable logging for the cssutils module, it's just so darn talkative
+    logging_config = {
+        'version' : 1,
+        'loggers' : {
+            'cssutils' : {
+                'level' : 'ERROR'
+            }
+        }
+    }
+    logging.config.dictConfig(logging_config)
+    
     # Check that all the sizes match
     sizes = set(map(image_size, (ground_data, wall_data, clip_data)))
     if len(sizes) != 1:
@@ -149,16 +168,30 @@ def render_room(ground_data, wall_data, clip_data, tile_size):
         'bymax',
         max_length=40)
     
+    wall_outline = template_doc(id='path-wall-outline')[0]
+    
+    wall_outline_attrs = cssutils.parseStyle(
+        wall_outline['style'],
+        validate=False
+    )
+        
+    wall_outline_attrs['stroke-width'] = (
+        '{:.2f}'.format(WALL_STROKE_WIDTH * tile_size)
+    )
+    
+    jitter_radius = JITTER_SCALE * tile_size
+    
     wall_outline_new_d = svgtools.jitter_nodes(
         floorplan_path_extra,
         end=True,
         ctrl=True,
-        radiusx=1,
-        radiusy=1,
-        norm=False)
+        radiusx=jitter_radius,
+        radiusy=jitter_radius,
+        norm=False
+    )
     
-    wall_outline = template_doc(id='path-wall-outline')[0]
     wall_outline['d'] = wall_outline_new_d
+    wall_outline['style'] = wall_outline_attrs.cssText
     
     return template_doc.prettify()
     
