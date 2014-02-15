@@ -192,6 +192,9 @@ def render_room(ground_data, wall_data, clip_data, tile_size):
     
     wall_outline['d'] = wall_outline_new_d
     wall_outline['style'] = wall_outline_attrs.cssText
+
+    # Remove the copyright notice
+    del template_doc.contents[0]
     
     return template_doc.prettify()
     
