@@ -36,7 +36,7 @@ def root():
 @app.route("/error")
 def error():
     """ Display errors. """
-    return render_template('error.html')
+    return render_template('error.html', page_class='error')
 
 @app.route("/map.svg", methods=['POST'])
 def process():

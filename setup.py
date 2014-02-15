@@ -35,7 +35,8 @@ setup(
     
     entry_points = {
         'console_scripts': [
-            'excavate = dungeon.excavate:main'
+            'excavate = dungeon.excavate:main',
+            'webcavate = dungeon.web:main',
         ]
     }
 )
