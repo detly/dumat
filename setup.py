@@ -30,7 +30,8 @@ setup(
     install_requires = [
         'BeautifulSoup4',
         'lxml',
-        'pillow'
+        'pillow',
+        'cssutils',
     ],
     
     entry_points = {
