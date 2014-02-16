@@ -25,6 +25,7 @@ setup(
     
     package_data = {
         'dungeon': ['template.svg'],
+        'dungeon.web': ['static/style.css', 'templates/*.html'],
     },
     
     install_requires = [
