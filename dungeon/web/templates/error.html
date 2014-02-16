@@ -1,5 +1,7 @@
 {% extends "base.html" %}
 
+{% set page_class = "error" %}
+
 {% block page_title %}Dungeon excavator: error{% endblock %}
 
 {% block content %}
@@ -7,4 +9,13 @@
 <p>
 There was an error generating the map.
 </p>
+
+{% with messages = get_flashed_messages() %}
+    {% if messages %}
+        {% for message in messages %}
+        <p>{{ message }}</p>
+        {% endfor %}
+    {% endif %}
+{% endwith %}
+
 {% endblock %}

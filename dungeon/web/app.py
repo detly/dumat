@@ -17,8 +17,9 @@ You should have received a copy of the GNU General Public License along with the
 dungeon excavator. If not, see <http://www.gnu.org/licenses/>.
 """
 import argparse
+import uuid
 
-from flask import Flask, render_template, request, make_response, redirect, url_for
+from flask import Flask, render_template, request, make_response, redirect, url_for, flash
 
 from dungeon.excavate import render_room
 
@@ -26,6 +27,7 @@ HELP_TEXT = """\
 Web interface to the dungeon excavator."""
 
 app = Flask('dungeon.web')
+app.secret_key = str(uuid.uuid4())
 
 @app.route("/")
 def root():
@@ -36,7 +38,7 @@ def root():
 @app.route("/error")
 def error():
     """ Display errors. """
-    return render_template('error.html', page_class='error')
+    return render_template('error.html')
 
 
 @app.route("/map.svg", methods=['POST'])
@@ -54,7 +56,8 @@ def process():
             floorplan_file.read(),
             tile_size
         )
-    except ValueError:
+    except ValueError as ve:
+        flash(str(ve))
         return redirect(url_for('error'))
         
     # Create response
