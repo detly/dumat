@@ -108,7 +108,12 @@ def extract_image_path(image_data):
         # which might mean it's an SVG file already.
         path_doc = bs(image_data, 'xml')
     else:
-        path_doc = image_trace(im)
+        try:
+            path_doc = image_trace(im)
+        except FileNotFoundError:
+            raise ValueError(
+                "Bitmap floorplans require 'potrace' to be installed"
+            )
 
     traced_paths = path_doc('path')
     
