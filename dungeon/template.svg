@@ -28,12 +28,12 @@ Initially created with Inkscape (http://www.inkscape.org/)
    xmlns:xlink="http://www.w3.org/1999/xlink"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
-   width="500"
-   height="500"
-   id="svg2"
+   width="0"
+   height="0"
+   id="dungeon-map"
    version="1.1"
    inkscape:version="0.48.4 r"
-   sodipodi:docname="Template.svg">
+   sodipodi:docname="template.svg">
   <defs
      id="defs1">
     <filter
@@ -168,8 +168,8 @@ Initially created with Inkscape (http://www.inkscape.org/)
        x="0"
        id="image-walls"
        xlink:href=""
-       height="500"
-       width="500" />
+       height="0"
+       width="0" />
   </g>
   <g
      inkscape:label="Ground"
@@ -180,8 +180,8 @@ Initially created with Inkscape (http://www.inkscape.org/)
        x="0"
        id="image-ground"
        xlink:href=""
-       height="500"
-       width="500"
+       height="0"
+       width="0"
        clip-path="url(#clip-path-room)" />
   </g>
   <g

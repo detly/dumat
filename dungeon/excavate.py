@@ -184,22 +184,35 @@ def render_room(ground_data, wall_data, clip_data, tile_size):
     if len(sizes) != 1:
         raise ValueError("Image sizes don't match")
     
+    # For the SVG
+    width, height = tuple(sizes)[0]
+    
+    # Load SVG
+    with resource_stream(__name__, TEMPLATE_FILE) as template_data:
+        template_doc = bs(template_data, 'xml')
+
+    # Set the sizes
+    svg_doc = template_doc('svg')[0]
+    svg_doc['width']  = width
+    svg_doc['height'] = height
+    
     # Trace paths for the floor plan
     floorplan_path = extract_image_path(clip_data)
-    
-    # Replace paths in the original image
     
     # Put some bitmaps in
     # The walls
     wall_svg = image_to_svg(wall_data)
-    with resource_stream(__name__, TEMPLATE_FILE) as template_data:
-        template_doc = bs(template_data, 'xml')
-    
-    template_doc(id='image-walls')[0]['xlink:href'] = wall_svg
+    wall_element = template_doc(id='image-walls')[0]
+    wall_element['xlink:href'] = wall_svg
+    wall_element['width']  = width
+    wall_element['height'] = height
     
     # The floor
     floor_svg = image_to_svg(ground_data)
-    template_doc(id='image-ground')[0]['xlink:href'] = floor_svg    
+    floor_element = template_doc(id='image-ground')[0]
+    floor_element['xlink:href'] = floor_svg
+    floor_element['width']  = width
+    floor_element['height'] = height
     
     # Adjust the blur
     blur_inside = int(round(BLUR_INSIDE_WIDTH * tile_size))
