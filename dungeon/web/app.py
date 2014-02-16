@@ -76,4 +76,4 @@ def main():
 
     args = parser.parse_args()
 
-    app.run(port=args.port, debug=True)
+    app.run(port=args.port, debug=False)
