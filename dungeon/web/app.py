@@ -74,6 +74,11 @@ def main():
         default=5050
     )
 
+    parser.add_argument(
+        '-a', '--host',
+        help="Host to server the interface on.",
+    )
+
     args = parser.parse_args()
 
-    app.run(port=args.port, debug=False)
+    app.run(port=args.port, host=args.host, debug=False)
