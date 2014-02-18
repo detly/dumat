@@ -3,6 +3,9 @@ Copyright 2014 Jason Heeris, jason.heeris@gmail.com
 Copyright 2005,2007 Aaron Spike, aaron@ekips.org
 Copyright 2006 Jean-Francois Barraud, barraud@math.univ-lille1.fr
 Copyright 2010 Alvin Penner, penner@vaxxine.com
+Copyright 2001-2002 Matt Chisholm matt@theory.org
+Copyright 2008 Joel Holdsworth joel@airwebreathe.org.uk
+    for AP
 
 This file is part of the dungeon excavator.
 
@@ -26,7 +29,7 @@ here has been taken from the "inkscape/share/extensions" directory. Individual
 copyright information and origin is documented with each function just in case
 it's useful.
 """
-from dungeon import cubicsuperpath, bezmisc
+from dungeon import bezmisc, cubicsuperpath, simplepath
 import random, math, copy, re
 
 # From inkscape/share/extensions/addnodes.py.
@@ -271,3 +274,88 @@ def fuseTransform(transform_string, path_string):
     p = cubicsuperpath.parsePath(path_string)
     applyTransformToPath(m,p)
     return cubicsuperpath.formatPath(p)
+
+# From inkscape/share/extensions/render_alphabetsoup.py
+# Copyright 2001-2002 Matt Chisholm, matt@theory.org
+# Copyright 2008 Joel Holdsworth, joel@airwebreathe.org.uk
+#     for AP
+# Copyright 2014 Jason Heeris, jason.heeris@gmail.com
+def getPathBoundingBox(path_string):
+    """
+    Takes an SVG path "d" string and calculates the bounding box. Returns
+    (xmin, xmax, ymin, ymax).
+    """
+    sp = simplepath.parsePath(path_string)
+    
+    box = None
+    last = None
+    lostctrl = None
+
+    for cmd,params in sp:
+        segmentBox = None
+
+        if cmd == 'M':
+            # A move cannot contribute to the bounding box
+            last = params[:]
+            lastctrl = params[:]
+        elif cmd == 'L':
+            if last:
+                segmentBox = (min(params[0], last[0]), max(params[0], last[0]), min(params[1], last[1]), max(params[1], last[1]))
+            last = params[:]
+            lastctrl = params[:]
+        elif cmd == 'C':
+            if last:        
+                segmentBox = (min(params[4], last[0]), max(params[4], last[0]), min(params[5], last[1]), max(params[5], last[1]))
+                
+                bx0, by0 = last[:]
+                bx1, by1, bx2, by2, bx3, by3 = params[:]
+
+                # Compute the x limits
+                a = (-bx0 + 3*bx1 - 3*bx2 + bx3)*3
+                b = (3*bx0 - 6*bx1  + 3*bx2)*2
+                c = (-3*bx0 + 3*bx1)
+                ts = findRealRoots(0, a, b, c)
+                for t in ts:
+                    if t >= 0 and t <= 1:        
+                        x = (-bx0 + 3*bx1 - 3*bx2 + bx3)*(t**3) + \
+                            (3*bx0 - 6*bx1 + 3*bx2)*(t**2) + \
+                            (-3*bx0 + 3*bx1)*t + \
+                            bx0
+                        segmentBox = (min(segmentBox[0], x), max(segmentBox[1], x), segmentBox[2], segmentBox[3])
+
+                # Compute the y limits
+                a = (-by0 + 3*by1 - 3*by2 + by3)*3
+                b = (3*by0 - 6*by1  + 3*by2)*2
+                c = (-3*by0 + 3*by1)
+                ts = findRealRoots(0, a, b, c)
+                for t in ts:
+                    if t >= 0 and t <= 1:        
+                        y = (-by0 + 3*by1 - 3*by2 + by3)*(t**3) + \
+                            (3*by0 - 6*by1 + 3*by2)*(t**2) + \
+                            (-3*by0 + 3*by1)*t + \
+                            by0
+                        segmentBox = (segmentBox[0], segmentBox[1], min(segmentBox[2], y), max(segmentBox[3], y))
+
+            last = params[-2:]
+            lastctrl = params[2:4]
+
+        elif cmd == 'Q':
+            # Provisional
+            if last:
+                segmentBox = (min(params[0], last[0]), max(params[0], last[0]), min(params[1], last[1]), max(params[1], last[1]))
+            last = params[-2:]
+            lastctrl = params[2:4]
+
+        elif cmd == 'A':
+            # Provisional
+            if last:
+                segmentBox = (min(params[0], last[0]), max(params[0], last[0]), min(params[1], last[1]), max(params[1], last[1]))
+            last = params[-2:]
+            lastctrl = params[2:4]
+
+        if segmentBox:
+            if box:
+                box = (min(segmentBox[0],box[0]), max(segmentBox[1],box[1]), min(segmentBox[2],box[2]), max(segmentBox[3],box[3]))
+            else:
+                box = segmentBox            
+    return box
