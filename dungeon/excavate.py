@@ -115,6 +115,11 @@ def extract_image_path(image_data):
                 "Bitmap floorplans require 'potrace' to be installed"
             )
 
+    top = path_doc('svg')[0]
+
+    width  = int(top['width'])
+    height = int(top['height'])
+
     traced_paths = path_doc('path')
     
     try:
@@ -137,28 +142,17 @@ def extract_image_path(image_data):
         transformed_path
     )
 
-    return transformed_path
+    return transformed_path, width, height
 
 
-def image_size(image_data):
-    """ Given a buffer, returns the size of the image represented. """
-    try:
-        data = BytesIO(image_data)
-        im = Image.open(data)
-    except IOError:
-        # Probably SVG
-        svgdoc = bs(image_data, 'xml')
-        try:
-            top = svgdoc('svg')[0]
-        except IndexError:
-            raise ValueError("Cannot identify image size")
-        else:
-            return (
-                int(top['width']),
-                int(top['height'])
-            )
-    else:
-        return im.size
+def raster_size(raster_data):
+    """
+    Given a buffer of raster image data, return the size of the image
+    represented.
+    """
+    data = BytesIO(raster_data)
+    im = Image.open(data)
+    return im.size
 
 
 def image_to_svg(image_data):
@@ -182,42 +176,36 @@ def render_room(ground_data, wall_data, clip_data, tile_size):
             }
         }
     }
-    logging.config.dictConfig(logging_config)
-    
-    # Check that all the sizes match
-    sizes = set(map(image_size, (ground_data, wall_data, clip_data)))
-    if len(sizes) != 1:
-        raise ValueError("Image sizes don't match")
-    
-    # For the SVG
-    width, height = tuple(sizes)[0]
-    
+    logging.config.dictConfig(logging_config)    
+   
+    # Trace paths for the floor plan
+    floorplan_path, width, height = extract_image_path(clip_data)
+ 
     # Load SVG
     with resource_stream(__name__, TEMPLATE_FILE) as template_data:
         template_doc = bs(template_data, 'xml')
-
+   
     # Set the sizes
     svg_doc = template_doc('svg')[0]
     svg_doc['width']  = width
     svg_doc['height'] = height
     
-    # Trace paths for the floor plan
-    floorplan_path = extract_image_path(clip_data)
-    
     # Put some bitmaps in
     # The walls
+    wall_width, wall_height = raster_size(wall_data)
     wall_svg = image_to_svg(wall_data)
     wall_element = template_doc(id='image-walls')[0]
     wall_element['xlink:href'] = wall_svg
-    wall_element['width']  = width
-    wall_element['height'] = height
+    wall_element['width']  = wall_width
+    wall_element['height'] = wall_height
     
     # The floor
+    floor_width, floor_height = raster_size(ground_data)
     floor_svg = image_to_svg(ground_data)
     floor_element = template_doc(id='image-ground')[0]
     floor_element['xlink:href'] = floor_svg
-    floor_element['width']  = width
-    floor_element['height'] = height
+    floor_element['width']  = floor_width
+    floor_element['height'] = floor_height
     
     # Adjust the blur
     blur_inside = int(round(BLUR_INSIDE_WIDTH * tile_size))
