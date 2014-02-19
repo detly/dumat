@@ -43,6 +43,13 @@ Initially created with Inkscape (http://www.inkscape.org/)
        xlink:href=""
        height="0"
        width="0" />
+    <image
+       y="0"
+       x="0"
+       id="image-wall"
+       xlink:href=""
+       height="0"
+       width="0" />
     <filter
        id="wall-boundary-filter"
        inkscape:label="Wall Boundary"
@@ -167,16 +174,8 @@ Initially created with Inkscape (http://www.inkscape.org/)
   </metadata>
   <g
      inkscape:groupmode="layer"
-     id="layer-walls"
-     inkscape:label="Walls"
-     style="display:inline">
-    <image
-       y="0"
-       x="0"
-       id="image-walls"
-       xlink:href=""
-       height="0"
-       width="0" />
+     id="layer-wall"
+     inkscape:label="Walls">
   </g>
   <g
      inkscape:label="Ground"

@@ -167,6 +167,48 @@ def image_to_svg(image_data):
         + base64.b64encode(image_data).decode('ascii'))
 
 
+def insert_and_tile_raster(image_data, map_doc, dimensions, image_id, layer_id):
+    """ Given raster (PNG) image data, convert it to SVG data and tile it.
+    
+    @param image_data a buffer of PNG data
+    @param map_doc the SVG file containing the template definitions
+    @param dimensions a tuple of the map dimensions (width, height)
+    @param image_id the ID of the image definition in the SVG template
+    @param layer_id the ID of the layer that should contain the tiled image
+    """
+    # The floor
+    width, height = dimensions
+    image_width, image_height = raster_size(image_data)
+    image_svg = image_to_svg(image_data)
+    image_element = map_doc.find(id=image_id)
+    image_element['xlink:href'] = image_svg
+    image_element['width']  = image_width
+    image_element['height'] = image_height
+    
+    # Tile the floor
+    image_layer = map_doc.find(id=layer_id)
+    x_repeats = ceil(width / image_width)
+    y_repeats = ceil(height / image_height)
+    
+    x_offsets = (num * image_width for num in range(x_repeats))
+    y_offsets = (num * image_width for num in range(y_repeats))
+    
+    for x_offset, y_offset in product(x_offsets, y_offsets):
+        x_offset_str = '{:d}'.format(x_offset)
+        y_offset_str = '{:d}'.format(y_offset)
+
+        tile = map_doc.new_tag(
+            'use',
+            **{
+                'xlink:href': '#' + image_id,
+                'y': y_offset_str,
+                'x': x_offset_str
+            }  
+        )
+
+        image_layer.append(tile)
+
+
 def render_room(ground_data, wall_data, clip_data, tile_size):
     """ Fill out the template document with the ground and wall textures. """
     # Disable logging for the cssutils module, it's just so darn talkative
@@ -193,44 +235,23 @@ def render_room(ground_data, wall_data, clip_data, tile_size):
     svg_doc['height'] = height
     
     # Put some bitmaps in
-    # The walls
-    wall_width, wall_height = raster_size(wall_data)
-    wall_svg = image_to_svg(wall_data)
-    wall_element = template_doc(id='image-walls')[0]
-    wall_element['xlink:href'] = wall_svg
-    wall_element['width']  = wall_width
-    wall_element['height'] = wall_height
-    
-    # The floor
-    floor_width, floor_height = raster_size(ground_data)
-    floor_svg = image_to_svg(ground_data)
-    floor_element = template_doc(id='image-ground')[0]
-    floor_element['xlink:href'] = floor_svg
-    floor_element['width']  = floor_width
-    floor_element['height'] = floor_height
-    
-    # Tile the floor
-    floor_layer = template_doc(id='layer-ground')[0]
-    x_repeats = ceil(width / floor_width)
-    y_repeats = ceil(height / floor_height)
-    
-    x_offsets = (num * floor_width for num in range(x_repeats))
-    y_offsets = (num * floor_width for num in range(y_repeats))
-    
-    for x_offset, y_offset in product(x_offsets, y_offsets):
-        x_offset_str = '{:d}'.format(x_offset)
-        y_offset_str = '{:d}'.format(y_offset)
+    # Insert and tile the walls
+    insert_and_tile_raster(
+        wall_data,
+        template_doc,
+        (width, height),
+        'image-wall',
+        'layer-wall',
+    )
 
-        tile = template_doc.new_tag(
-            'use',
-            **{
-                'xlink:href': '#image-ground',
-                'y': y_offset_str,
-                'x': x_offset_str
-            }  
-        )
-
-        floor_layer.append(tile)
+    # Insert and tile the floor
+    insert_and_tile_raster(
+        ground_data,
+        template_doc,
+        (width, height),
+        'image-ground',
+        'layer-ground',
+    )
     
     # Adjust the blur
     blur_inside = int(round(BLUR_INSIDE_WIDTH * tile_size))
