@@ -19,7 +19,9 @@ dungeon excavator. If not, see <http://www.gnu.org/licenses/>.
 import argparse
 import base64
 from io import BytesIO
+from itertools import product
 import logging.config
+from math import ceil
 import os.path
 import subprocess
 import sys
@@ -206,6 +208,29 @@ def render_room(ground_data, wall_data, clip_data, tile_size):
     floor_element['xlink:href'] = floor_svg
     floor_element['width']  = floor_width
     floor_element['height'] = floor_height
+    
+    # Tile the floor
+    floor_layer = template_doc(id='layer-ground')[0]
+    x_repeats = ceil(width / floor_width)
+    y_repeats = ceil(height / floor_height)
+    
+    x_offsets = (num * floor_width for num in range(x_repeats))
+    y_offsets = (num * floor_width for num in range(y_repeats))
+    
+    for x_offset, y_offset in product(x_offsets, y_offsets):
+        x_offset_str = '{:d}'.format(x_offset)
+        y_offset_str = '{:d}'.format(y_offset)
+
+        tile = template_doc.new_tag(
+            'use',
+            **{
+                'xlink:href': '#image-ground',
+                'y': y_offset_str,
+                'x': x_offset_str
+            }  
+        )
+
+        floor_layer.append(tile)
     
     # Adjust the blur
     blur_inside = int(round(BLUR_INSIDE_WIDTH * tile_size))

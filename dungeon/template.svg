@@ -36,6 +36,13 @@ Initially created with Inkscape (http://www.inkscape.org/)
    sodipodi:docname="template.svg">
   <defs
      id="defs1">
+    <image
+       y="0"
+       x="0"
+       id="image-ground"
+       xlink:href=""
+       height="0"
+       width="0" />
     <filter
        id="wall-boundary-filter"
        inkscape:label="Wall Boundary"
@@ -174,15 +181,8 @@ Initially created with Inkscape (http://www.inkscape.org/)
   <g
      inkscape:label="Ground"
      inkscape:groupmode="layer"
-     id="layer-ground">
-    <image
-       y="0"
-       x="0"
-       id="image-ground"
-       xlink:href=""
-       height="0"
-       width="0"
-       clip-path="url(#clip-path-room)" />
+     id="layer-ground"
+     clip-path="url(#clip-path-room)">
   </g>
   <g
      inkscape:groupmode="layer"
