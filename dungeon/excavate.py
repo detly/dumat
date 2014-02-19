@@ -53,8 +53,9 @@ HELP_TEXT="""\
 The dungeon excavator takes a floor image, a wall image and a floorplan and
 renders a dungeon map. The floorplan image is used to create shading to give the
 impression of depth, and an outline is added with a bit of random jittering to
-give a "hand drawn" effect. Note that all image sizes (including the floorplan)
-must match exactly."""
+give a "hand drawn" effect. The output will be the same size as the floorplan.
+The wall and floor images are tiled if they are smaller than the floorplan.
+"""
 
 TRACING_FORMAT='ppm'
 
@@ -329,17 +330,18 @@ def main():
     """ Parse arguments and get things going. """
     parser = argparse.ArgumentParser(description=HELP_TEXT)
 
-    parser.add_argument('ground'   , help="Ground texture (bitmap image)")
-    parser.add_argument('wall'     , help="Wall texture (bitmap image)")
+    parser.add_argument('ground', help="Ground texture (PNG image)")
+    parser.add_argument('wall'  , help="Wall texture (PNG image)")
 
     parser.add_argument(
         'floorplan',
         help=(
-            "Mask for the floor plan. This can be a bitmap image or an SVG "
-            "image. If it is a bitmap, it should be black where you want the "
-            "ground to show and white everywhere else. The 'potrace' executable"
-            " must be installed to be able to use bitmaps. If the file is an "
-            "SVG file, the first path in the file will be used."
+            "Mask for the floor plan. This can be a bitmap image (any format "
+            "supported by Pillow) or an SVG image. If it is a bitmap, it should"
+            " be black where you want the ground to show and white everywhere "
+            "else. The 'potrace' executable must be installed to be able to use"
+            " bitmaps. If the file is an SVG file, the first path in the file "
+            "will be used."
         )
     )
     
