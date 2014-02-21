@@ -141,6 +141,26 @@ Initially created with Inkscape (http://www.inkscape.org/)
          inkscape:connector-curvature="0"
          sodipodi:nodetypes="ccccccccccccc" />
     </clipPath>
+    <clipPath
+       clipPathUnits="userSpaceOnUse"
+       id="clip-path-floor">
+      <path
+         style="fill:#000000;fill-opacity:1;stroke:none"
+         d=""
+         id="clip-path-floor-path"
+         inkscape:connector-curvature="0"
+         sodipodi:nodetypes="ccccccccccccc" />
+    </clipPath>
+    <clipPath
+       clipPathUnits="userSpaceOnUse"
+       id="clip-path-floor-inverted">
+      <path
+         style="fill:#000000;fill-opacity:1;stroke:none"
+         d=""
+         id="clip-path-floor-path-inverted"
+         inkscape:connector-curvature="0"
+         sodipodi:nodetypes="ccccccccccccc" />
+    </clipPath>
   </defs>
   <sodipodi:namedview
      id="base"
@@ -173,11 +193,6 @@ Initially created with Inkscape (http://www.inkscape.org/)
     </rdf:RDF>
   </metadata>
   <g
-     inkscape:groupmode="layer"
-     id="layer-wall"
-     inkscape:label="Walls">
-  </g>
-  <g
      inkscape:label="Ground"
      inkscape:groupmode="layer"
      id="layer-ground"
@@ -185,10 +200,16 @@ Initially created with Inkscape (http://www.inkscape.org/)
   </g>
   <g
      inkscape:groupmode="layer"
+     id="layer-wall"
+     inkscape:label="Walls"
+     clip-path="url(#clip-path-floor-inverted)">
+  </g>
+  <g
+     inkscape:groupmode="layer"
      id="layer-wall-shading"
      inkscape:label="Wall Shading">
     <use
-       xlink:href="#clip-path-room-path"
+       xlink:href="#clip-path-floor-path"
        style="fill:#000000;stroke:none;fill-opacity:1;filter:url(#wall-boundary-filter)"
        inkscape:connector-curvature="0"
        sodipodi:nodetypes="ccccccccccccc" />

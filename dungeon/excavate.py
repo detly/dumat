@@ -59,6 +59,7 @@ The wall and floor images are tiled if they are smaller than the floorplan.
 
 TRACING_FORMAT='ppm'
 
+
 def image_trace(image):
     """
     Uses "potrace" to trace the given PIL.Image object. Returns a beautifulsoup
@@ -139,12 +140,12 @@ def extract_image_path(image_data):
         traced_path_tx,
         traced_path_d
     )
-    
+        
     transformed_path = svgtools.fuseTransform(
         traced_path_parent_tx,
         transformed_path
     )
-
+    
     return transformed_path, width, height
 
 
@@ -225,6 +226,9 @@ def render_room(ground_data, wall_data, clip_data, tile_size):
    
     # Trace paths for the floor plan
     floorplan_path, width, height = extract_image_path(clip_data)
+
+    # Create a bounding box for everything
+    bounding_path = svgtools.create_bounding_path(width, height)
  
     # Load SVG
     with resource_stream(__name__, TEMPLATE_FILE) as template_data:
@@ -262,7 +266,16 @@ def render_room(ground_data, wall_data, clip_data, tile_size):
     
     # Clip the floor
     clip_path = template_doc(id='clip-path-room-path')[0]
-    clip_path['d'] = floorplan_path
+    clip_path['d'] = bounding_path
+    
+    # Clip the walls
+    floor_path = template_doc.find(id='clip-path-floor-path')
+    floor_path['d'] = floorplan_path
+    
+    # Invert the wall path
+    floorplan_path_inverted = svgtools.path_difference(bounding_path, floorplan_path)
+    floor_path_inverted = template_doc.find(id='clip-path-floor-path-inverted')
+    floor_path_inverted['d'] = floorplan_path_inverted
     
     floorplan_path_extra = svgtools.add_nodes_to_path(
         floorplan_path,
