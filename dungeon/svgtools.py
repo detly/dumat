@@ -273,89 +273,72 @@ def fuseTransform(transform_string, path_string):
     m = parseTransform(transform_string)
     p = cubicsuperpath.parsePath(path_string)
     applyTransformToPath(m,p)
-    return cubicsuperpath.formatPath(p)
+    return cubicsuperpath.formatPath(p, terminate=True)
+
+
+# From inkscape/share/extensions/render_alphabetsoup.py
+# Copyright 2001-2002 Matt Chisholm, matt@theory.org
+# Copyright 2008 Joel Holdsworth, joel@airwebreathe.org.uk
+#     for AP
+def reverseComponent(c):
+    """" Support function for reversePath. """
+    nc = []
+    last = c.pop()
+    nc.append(['M', last[1][-2:]])
+    while c:
+        this = c.pop()
+        cmd = last[0]
+        if cmd == 'C':
+            nc.append([last[0], last[1][2:4] + last[1][:2] + this[1][-2:]])
+        else:
+            nc.append([last[0], this[1][-2:]])
+        last = this
+    return nc
+
 
 # From inkscape/share/extensions/render_alphabetsoup.py
 # Copyright 2001-2002 Matt Chisholm, matt@theory.org
 # Copyright 2008 Joel Holdsworth, joel@airwebreathe.org.uk
 #     for AP
 # Copyright 2014 Jason Heeris, jason.heeris@gmail.com
-def getPathBoundingBox(path_string):
+def reversePath(path_string):
     """
-    Takes an SVG path "d" string and calculates the bounding box. Returns
-    (xmin, xmax, ymin, ymax).
+    Takes an SVG path "d" string and reverses the path. Returns a new "d"
+    string.
     """
     sp = simplepath.parsePath(path_string)
+    rp = []
+    component = []
+    for p in sp:
+        cmd, params = p
+        if cmd == 'Z':
+            rp.extend(reverseComponent(component))
+            rp.append(['Z', []])
+            component = []
+        else:
+            component.append(p)
+    return simplepath.formatPath(rp)
+
+
+# Copyright 2014 Jason Heeris, jason.heeris@gmail.com
+def path_difference(minuend_path_string, subtrahend_path_string):
+    """
+    """
+    minuend_path    = simplepath.parsePath(minuend_path_string)
+    subtrahend_path = simplepath.parsePath(reversePath(subtrahend_path_string))
+    minuend_path.extend(subtrahend_path)
+    return simplepath.formatPath(minuend_path)
+
+# Copyright 2014 Jason Heeris, jason.heeris@gmail.com
+def create_bounding_path(width, height):
+    """ Creates a rectangular path that borders the image. """
+    path = [
+        ['m', [0, 0]  ],
+        ['v', [height]],
+        ['h', [width ]],
+        ['v', [-height]],
+        ['z', []      ]
+    ]
     
-    box = None
-    last = None
-    lostctrl = None
+    return simplepath.formatPath(path)
 
-    for cmd,params in sp:
-        segmentBox = None
-
-        if cmd == 'M':
-            # A move cannot contribute to the bounding box
-            last = params[:]
-            lastctrl = params[:]
-        elif cmd == 'L':
-            if last:
-                segmentBox = (min(params[0], last[0]), max(params[0], last[0]), min(params[1], last[1]), max(params[1], last[1]))
-            last = params[:]
-            lastctrl = params[:]
-        elif cmd == 'C':
-            if last:        
-                segmentBox = (min(params[4], last[0]), max(params[4], last[0]), min(params[5], last[1]), max(params[5], last[1]))
-                
-                bx0, by0 = last[:]
-                bx1, by1, bx2, by2, bx3, by3 = params[:]
-
-                # Compute the x limits
-                a = (-bx0 + 3*bx1 - 3*bx2 + bx3)*3
-                b = (3*bx0 - 6*bx1  + 3*bx2)*2
-                c = (-3*bx0 + 3*bx1)
-                ts = findRealRoots(0, a, b, c)
-                for t in ts:
-                    if t >= 0 and t <= 1:        
-                        x = (-bx0 + 3*bx1 - 3*bx2 + bx3)*(t**3) + \
-                            (3*bx0 - 6*bx1 + 3*bx2)*(t**2) + \
-                            (-3*bx0 + 3*bx1)*t + \
-                            bx0
-                        segmentBox = (min(segmentBox[0], x), max(segmentBox[1], x), segmentBox[2], segmentBox[3])
-
-                # Compute the y limits
-                a = (-by0 + 3*by1 - 3*by2 + by3)*3
-                b = (3*by0 - 6*by1  + 3*by2)*2
-                c = (-3*by0 + 3*by1)
-                ts = findRealRoots(0, a, b, c)
-                for t in ts:
-                    if t >= 0 and t <= 1:        
-                        y = (-by0 + 3*by1 - 3*by2 + by3)*(t**3) + \
-                            (3*by0 - 6*by1 + 3*by2)*(t**2) + \
-                            (-3*by0 + 3*by1)*t + \
-                            by0
-                        segmentBox = (segmentBox[0], segmentBox[1], min(segmentBox[2], y), max(segmentBox[3], y))
-
-            last = params[-2:]
-            lastctrl = params[2:4]
-
-        elif cmd == 'Q':
-            # Provisional
-            if last:
-                segmentBox = (min(params[0], last[0]), max(params[0], last[0]), min(params[1], last[1]), max(params[1], last[1]))
-            last = params[-2:]
-            lastctrl = params[2:4]
-
-        elif cmd == 'A':
-            # Provisional
-            if last:
-                segmentBox = (min(params[0], last[0]), max(params[0], last[0]), min(params[1], last[1]), max(params[1], last[1]))
-            last = params[-2:]
-            lastctrl = params[2:4]
-
-        if segmentBox:
-            if box:
-                box = (min(segmentBox[0],box[0]), max(segmentBox[1],box[1]), min(segmentBox[2],box[2]), max(segmentBox[3],box[3]))
-            else:
-                box = segmentBox            
-    return box
