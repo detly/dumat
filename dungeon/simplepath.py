@@ -165,7 +165,8 @@ def parsePath(d):
 
 def formatPath(a):
     """Format SVG path data from an array"""
-    return "".join([cmd + " ".join([str(p) for p in params]) for cmd, params in a])
+    # Edited by JH to fix spacing issue
+    return " ".join(" ".join(str(el) for el in [cmd] + params) for cmd, params in a)
 
 def translatePath(p, x, y):
     for cmd,params in p:
