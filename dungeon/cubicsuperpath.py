@@ -162,8 +162,15 @@ def unCubicSuperPath(csp):
 def parsePath(d):
     return CubicSuperPath(simplepath.parsePath(d))
 
-def formatPath(p):
-    return simplepath.formatPath(unCubicSuperPath(p))
+def formatPath(p, terminate=False):
+    # Modified by JH to add 'Z' termination when needed
+    simple_path = unCubicSuperPath(p)
+    
+    if terminate:
+        simple_path.append(['Z', []])
+    
+    return simplepath.formatPath(simple_path)
+
 
 
 # vim: expandtab shiftwidth=4 tabstop=8 softtabstop=4 fileencoding=utf-8 textwidth=99
