@@ -93,6 +93,14 @@ def image_trace(image):
         
         path_doc = bs(vfile, 'xml')
 
+    # The SVG produced by 'potrace' contain units in their dimensions
+    svg_root = path_doc.find('svg')
+    
+    for dim in ('width', 'height'):
+        dim_str = svg_root[dim]
+        if dim_str.endswith('pt'):
+            svg_root[dim] = dim_str[:-2]
+    
     return path_doc
 
 
@@ -121,8 +129,8 @@ def extract_image_path(image_data):
 
     top = path_doc('svg')[0]
 
-    width  = int(top['width'])
-    height = int(top['height'])
+    width  = float(top['width'])
+    height = float(top['height'])
 
     traced_paths = path_doc('path')
     
