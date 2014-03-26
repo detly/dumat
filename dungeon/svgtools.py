@@ -325,7 +325,25 @@ def path_difference(minuend_path_string, subtrahend_path_string):
     """
     """
     minuend_path    = simplepath.parsePath(minuend_path_string)
-    subtrahend_path = simplepath.parsePath(reversePath(subtrahend_path_string))
+    subtrahend_path = simplepath.parsePath(subtrahend_path_string)
+        
+    winding = 0
+    last_point = None
+    
+    for kind, coords in subtrahend_path:
+        if kind == 'M':
+            if last_point is not None:
+                winding += (last_point[0] + coords[0])*(last_point[1] - coords[1])
+            last_point = coords
+                
+        if kind == 'C':
+            if last_point is not None:
+                winding += (last_point[0] + coords[4])*(last_point[1] - coords[5])
+            last_point = coords[4:6]
+    
+    if winding > 0:    
+        subtrahend_path = simplepath.parsePath(reversePath(subtrahend_path_string))
+    
     minuend_path.extend(subtrahend_path)
     return simplepath.formatPath(minuend_path)
 
