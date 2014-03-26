@@ -321,28 +321,44 @@ def reversePath(path_string):
 
 
 # Copyright 2014 Jason Heeris, jason.heeris@gmail.com
+def winding_sign(path_string):
+    """
+    Computes the sign of the winding number of the path. Returns a negative
+    number if the path is clockwise, or a positive number if it is counter-
+    clockwise.
+    """
+    path = simplepath.parsePath(path_string)
+    
+    winding = 0
+    last_point = None
+    
+    for kind, coords in path:
+        # simplepath.parsePath only creates absolute coordinates
+        if kind == 'M':
+            this_point = coords[0:2]
+            
+        if kind == 'C':
+            this_point = coords[4:6]
+            
+        if last_point is not None:
+            curl = (last_point[0] + this_point[0])*(last_point[1] - this_point[1])
+            winding += curl
+            
+        last_point = coords
+    
+    return winding
+
+
+# Copyright 2014 Jason Heeris, jason.heeris@gmail.com
 def path_difference(minuend_path_string, subtrahend_path_string):
     """
     """
     minuend_path    = simplepath.parsePath(minuend_path_string)
-    subtrahend_path = simplepath.parsePath(subtrahend_path_string)
-        
-    winding = 0
-    last_point = None
     
-    for kind, coords in subtrahend_path:
-        if kind == 'M':
-            if last_point is not None:
-                winding += (last_point[0] + coords[0])*(last_point[1] - coords[1])
-            last_point = coords
-                
-        if kind == 'C':
-            if last_point is not None:
-                winding += (last_point[0] + coords[4])*(last_point[1] - coords[5])
-            last_point = coords[4:6]
-    
-    if winding > 0:    
+    if winding_sign(subtrahend_path_string) > 0:    
         subtrahend_path = simplepath.parsePath(reversePath(subtrahend_path_string))
+    else:
+        subtrahend_path = simplepath.parsePath(subtrahend_path_string)
     
     minuend_path.extend(subtrahend_path)
     return simplepath.formatPath(minuend_path)
