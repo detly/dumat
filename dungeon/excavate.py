@@ -93,6 +93,14 @@ def image_trace(image):
         
         path_doc = bs(vfile, 'xml')
 
+    # The SVG produced by 'potrace' contain units in their dimensions
+    svg_root = path_doc.find('svg')
+    
+    for dim in ('width', 'height'):
+        dim_str = svg_root[dim]
+        if dim_str.endswith('pt'):
+            svg_root[dim] = dim_str[:-2]
+    
     return path_doc
 
 
@@ -119,16 +127,14 @@ def extract_image_path(image_data):
                 "Bitmap floorplans require 'potrace' to be installed"
             )
 
-    top = path_doc('svg')[0]
+    svg_root = path_doc.find('svg')
 
-    width  = int(top['width'])
-    height = int(top['height'])
+    width  = float(svg_root['width'])
+    height = float(svg_root['height'])
 
-    traced_paths = path_doc('path')
+    traced_path = path_doc.find('path')
     
-    try:
-        traced_path = traced_paths[0]
-    except IndexError:
+    if not traced_path:
         raise ValueError("Cannot extract path from floorplan file")
     
     traced_path_d = traced_path['d']
@@ -235,7 +241,7 @@ def render_room(ground_data, wall_data, clip_data, tile_size):
         template_doc = bs(template_data, 'xml')
    
     # Set the sizes
-    svg_doc = template_doc('svg')[0]
+    svg_doc = template_doc.find('svg')
     svg_doc['width']  = width
     svg_doc['height'] = height
     
@@ -261,11 +267,11 @@ def render_room(ground_data, wall_data, clip_data, tile_size):
     # Adjust the blur
     blur_inside = int(round(BLUR_INSIDE_WIDTH * tile_size))
     blur_outside = int(round(BLUR_OUTSIDE_WIDTH * tile_size))
-    template_doc(id='wall-blur-inside')[0]['stdDeviation'] = str(blur_inside)
-    template_doc(id='wall-blur-outside')[0]['stdDeviation'] = str(blur_outside)
+    template_doc.find(id='wall-blur-inside')['stdDeviation'] = str(blur_inside)
+    template_doc.find(id='wall-blur-outside')['stdDeviation'] = str(blur_outside)
     
     # Clip the floor
-    clip_path = template_doc(id='clip-path-room-path')[0]
+    clip_path = template_doc.find(id='clip-path-room-path')
     clip_path['d'] = bounding_path
     
     # Clip the walls
@@ -282,7 +288,7 @@ def render_room(ground_data, wall_data, clip_data, tile_size):
         'bymax',
         max_length=40)
     
-    wall_outline = template_doc(id='path-wall-outline')[0]
+    wall_outline = template_doc.find(id='path-wall-outline')
     
     wall_outline_attrs = cssutils.parseStyle(
         wall_outline['style'],
