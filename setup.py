@@ -33,6 +33,7 @@ setup(
         'lxml',
         'pillow',
         'cssutils',
+        'wand',
     ],
     
     entry_points = {

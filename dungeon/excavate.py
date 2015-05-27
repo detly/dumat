@@ -31,6 +31,7 @@ from bs4 import BeautifulSoup as bs
 import cssutils
 from PIL import Image
 from pkg_resources import resource_stream
+import wand.image as wi
 
 from dungeon import svgtools
 
@@ -324,7 +325,8 @@ def render_room_from_paths(
         wall_path,
         clip_path,
         output_path,
-        tile_size):
+        tile_size,
+        png_output):
     """ Load template and textures and export the rendered result. """
     with open(ground_path, 'rb') as gp:
         ground_data = gp.read()
@@ -341,8 +343,13 @@ def render_room_from_paths(
         clip_data,
         tile_size)
     
-    with open(output_path, 'w') as op:
-        op.write(room)
+    if png_output:
+        with wi.Image(blob=room.encode('ascii'), format='svg') as img:
+            img.format = 'png'
+            img.save(filename=output_path)
+    else:
+        with open(output_path, 'w') as op:
+            op.write(room)
 
 
 def main():
@@ -366,13 +373,18 @@ def main():
     
     parser.add_argument('output', help="Output file (Inkscape SVG)")
     
-    parser.add_argument('-s', '--tile-size',
-                        help="The size of a single grid square in px (default "
-                             "100px). Used to scale the shading and wall "
-                             "outline.",
-                        type=int,
-                        default=100)
-    
+    parser.add_argument(
+        '-s', '--tile-size',
+        help="The size of a single grid square in px (default 100px). Used to "
+             "scale the shading and wall outline.",
+        type=int,
+        default=100)
+ 
+    parser.add_argument(
+        '-p', '--png-output',
+        help="Render the map to PNG",
+        action='store_true')
+
     args = parser.parse_args()
     
     return render_room_from_paths(
@@ -380,4 +392,5 @@ def main():
         args.wall,
         args.floorplan,
         args.output,
-        args.tile_size)
+        args.tile_size,
+        args.png_output)
