@@ -7,7 +7,10 @@
 
 <form action="map.svg" method="POST" enctype="multipart/form-data">
     <p>
-    <label for="size">Tile size</label>
+    <label for="size">
+    In the images, how many pixels represent a single tile? This will be used to
+    scale visual effects such as lighting and the border.
+    </label>
     <input
         id="size"
         name="size"
@@ -17,22 +20,48 @@
     </p>
     
     <p>
-    <label for="floor">Floor texture</label>
+    <label for="floor">
+    Select the floor texture. This will be tiled (repeated) underneath
+    the other texture. It should be a PNG image.
+    </label>
     <input id="floor" name="floor" type="file" required="true">
     </p>
     
     <p>
-    <label for="walls">Wall texture</label>
+    <label for="walls">
+    Select the wall texture. This will be tiled everywhere the floor isn't. It
+    should be a PNG image.
+    </label>
     <input id="walls" name="walls" type="file" required="true">
     </p>
     
     <p>
-    <label for="floorplan">Floorplan</label>
+    <label for="floorplan">
+    Select the floorplan. This should be a black and white image — any common
+    bitmap format, eg. PNG, JPG, BMP; or an SVG image. If it&rsquo;s a bitmap
+    image, it should be black where you want the floor to show and white or
+    transparent everywhere else. If it&rsquo;s an SVG image, the first path in
+    the file will be used.
+    </label>
     <input id="floorplan" name="floorplan" type="file" required="true">
     </p>
     
+    <!--
+    <p>
+    <label for="format">
+    What format do you want the result in? PNG is good for immediate use (eg.
+    uploading to a TRPG service), whereas SVG is good for further editing.
+    </label>
+
+    <select id="format" name="format">
+        <option value="png">PNG</option>
+        <option value="svg">SVG</option>
+    </select>
+    </p>
+    -->
+
     <p class="submission">
-    <button type="submit">Generate map</button>
+    <button type="submit">Generate map&hellip;</button>
     </p>
 </form>
 {% endblock %}
