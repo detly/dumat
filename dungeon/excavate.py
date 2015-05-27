@@ -218,7 +218,7 @@ def insert_and_tile_raster(image_data, map_doc, dimensions, image_id, layer_id):
         image_layer.append(tile)
 
 
-def render_room(ground_data, wall_data, clip_data, tile_size):
+def render_room(ground_data, wall_data, clip_data, tile_size, as_png):
     """ Fill out the template document with the ground and wall textures. """
     # Disable logging for the cssutils module, it's just so darn talkative
     logging_config = {
@@ -317,8 +317,15 @@ def render_room(ground_data, wall_data, clip_data, tile_size):
     # Remove the copyright notice
     del template_doc.contents[0]
     
-    return template_doc.prettify()
+    svg_result = template_doc.prettify().encode('ascii')
     
+    if as_png:
+        with wi.Image(blob=svg_result, format='svg') as img:
+            png_result = img.make_blob('png')
+        
+        return png_result
+    else:
+        return svg_result
 
 def render_room_from_paths(
         ground_path,
@@ -341,15 +348,11 @@ def render_room_from_paths(
         ground_data,
         wall_data,
         clip_data,
-        tile_size)
+        tile_size,
+        png_output)
     
-    if png_output:
-        with wi.Image(blob=room.encode('ascii'), format='svg') as img:
-            img.format = 'png'
-            img.save(filename=output_path)
-    else:
-        with open(output_path, 'w') as op:
-            op.write(room)
+    with open(output_path, 'wb') as op:
+        op.write(room)
 
 
 def main():
