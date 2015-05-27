@@ -5,7 +5,7 @@
 {% block content %}
 <h1>Dungeon generator</h1>
 
-<form action="map.svg" method="POST" enctype="multipart/form-data">
+<form action="map" method="POST" enctype="multipart/form-data">
     <p>
     <label for="size">
     In the images, how many pixels represent a single tile? This will be used to
@@ -46,7 +46,6 @@
     <input id="floorplan" name="floorplan" type="file" required="true">
     </p>
     
-    <!--
     <p>
     <label for="format">
     What format do you want the result in? PNG is good for immediate use (eg.
@@ -58,8 +57,7 @@
         <option value="svg">SVG</option>
     </select>
     </p>
-    -->
-
+    
     <p class="submission">
     <button type="submit">Generate map&hellip;</button>
     </p>
