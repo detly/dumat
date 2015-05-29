@@ -32,6 +32,14 @@ p {
     margin-bottom: 8ex;
 }
 
+p.description {
+    margin-bottom: 4ex;
+}
+
+.description {
+    font-style: italic;
+}
+
 input[type="number"] {
     display: block;
     border-style: solid;
