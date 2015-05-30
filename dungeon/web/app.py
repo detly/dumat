@@ -40,42 +40,45 @@ def error():
     """ Display errors. """
     return render_template('error.html')
 
-def make_map(request, as_png):
-    format = request.form['format']
+
+def make_map(request, format):
     tile_size = int(request.form['size'])
     wall_file = request.files['walls']
     floor_file = request.files['floor']
     floorplan_file = request.files['floorplan']
 
-    if as_png:
-        content_type = 'image/png'
-    else:
-        content_type = 'image/svg+xml'
-
     try:
-        room_data = render_room(
+        room_data, content_type = render_room(
             floor_file.read(),
             wall_file.read(),
             floorplan_file.read(),
             tile_size,
-            as_png
+            format
         )
     except ValueError as ve:
         flash(str(ve))
         return redirect(url_for('error'))
-    
+
     # Create response
     response = make_response(room_data)
     response.headers['Content-Type'] = content_type
     return response
 
+
 @app.route("/map.svg", methods=['POST'])
 def map_svg():
-    return make_map(request, as_png=False)
+    return make_map(request, format='svg')
+
 
 @app.route("/map.png", methods=['POST'])
 def map_png():
-    return make_map(request, as_png=True)
+    return make_map(request, format='png')
+
+
+@app.route("/map.jpg", methods=['POST'])
+def map_jpg():
+    return make_map(request, format='jpg')
+
 
 @app.route("/map", methods=['POST'])
 def process():
@@ -85,7 +88,8 @@ def process():
     try:
         node = {
             'png': 'map_png',
-            'svg': 'map_svg'
+            'svg': 'map_svg',
+            'jpg': 'map_jpg',
         }[format]
     except KeyError:
         flash("The output format you selected is not supported.")

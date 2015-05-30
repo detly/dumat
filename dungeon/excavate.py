@@ -217,9 +217,40 @@ def insert_and_tile_raster(image_data, map_doc, dimensions, image_id, layer_id):
 
         image_layer.append(tile)
 
+# Each post_render_* function takes a byte string containing the room data, and
+# renders it to the bytes for the final output format. They should return a
+# tuple: (image bytes, MIME type).
 
-def render_room(ground_data, wall_data, clip_data, tile_size, as_png):
-    """ Fill out the template document with the ground and wall textures. """
+def post_render_svg(room_data):
+    """ Render to SVG. """
+    return room, 'image/svg+xml'
+
+def post_render_png(room_data):
+    """ Render to PNG """
+    with wi.Image(blob=room_data, format='svg') as img:
+        img.format = 'png'
+        mime_type = img.mimetype
+        result = img.make_blob()
+    
+    return result, mime_type
+
+
+def post_render_jpg(room_data):
+    """ Render to JPG with 94% compression level. """
+    with wi.Image(blob=room_data, format='svg') as img:
+        img.format = 'jpg'
+        img.compression_quality = 94
+        mime_type = img.mimetype
+        result = img.make_blob()
+    
+    return result, mime_type
+
+
+def render_room(ground_data, wall_data, clip_data, tile_size, format):
+    """
+    Fill out the template document with the ground and wall textures. Returns
+    a byte string containing the final image data, and a MIME type.
+    """
     # Disable logging for the cssutils module, it's just so darn talkative
     logging_config = {
         'version' : 1,
@@ -230,7 +261,16 @@ def render_room(ground_data, wall_data, clip_data, tile_size, as_png):
         }
     }
     logging.config.dictConfig(logging_config)    
-   
+    
+    post_render_funcs = {
+        'svg': post_render_svg,
+        'png': post_render_png,
+        'jpg': post_render_jpg
+    }
+
+    if format not in post_render_funcs:
+        raise ValueError('Invalid format!')
+
     # Trace paths for the floor plan
     floorplan_path, width, height = extract_image_path(clip_data)
 
@@ -317,15 +357,11 @@ def render_room(ground_data, wall_data, clip_data, tile_size, as_png):
     # Remove the copyright notice
     del template_doc.contents[0]
     
-    svg_result = template_doc.prettify().encode('ascii')
-    
-    if as_png:
-        with wi.Image(blob=svg_result, format='svg') as img:
-            png_result = img.make_blob('png')
-        
-        return png_result
-    else:
-        return svg_result
+    room_data = template_doc.prettify().encode('ascii')
+
+    rendered_data, mime_type = post_render_funcs[format](room_data)
+
+    return rendered_data, mime_type
 
 def render_room_from_paths(
         ground_path,
@@ -333,7 +369,7 @@ def render_room_from_paths(
         clip_path,
         output_path,
         tile_size,
-        png_output):
+        format):
     """ Load template and textures and export the rendered result. """
     with open(ground_path, 'rb') as gp:
         ground_data = gp.read()
@@ -344,12 +380,12 @@ def render_room_from_paths(
     with open(clip_path, 'rb') as cp:
         clip_data = cp.read()
         
-    room = render_room(
+    room, _ = render_room(
         ground_data,
         wall_data,
         clip_data,
         tile_size,
-        png_output)
+        format)
     
     with open(output_path, 'wb') as op:
         op.write(room)
@@ -384,9 +420,9 @@ def main():
         default=100)
  
     parser.add_argument(
-        '-p', '--png-output',
-        help="Render the map to PNG",
-        action='store_true')
+        '-f', '--format', choices=('svg', 'png', 'jpg'),
+        help="The format to render the map to.",
+        default='svg')
 
     args = parser.parse_args()
     
@@ -396,4 +432,4 @@ def main():
         args.floorplan,
         args.output,
         args.tile_size,
-        args.png_output)
+        args.format)
