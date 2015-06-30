@@ -53,16 +53,4 @@ shading) and thickness of the walls.
 
 ## Web interface
 
-You can also run a web interface to the dungeon mapper. This requires `flask` to
-be installed (also installable via `pip`). Run:
-
-```
-webcavate
-```
-
-...and load `http://localhost:5050/` in a browser. (If you haven't installed the
-package via `pip` you can use `python -m dungeon.web`.)
-
-You can change the port that the web app runs on using the `-p` option, and if
-you want to access the interface from another machine, use `-a 0.0.0.0` (or some
-other address to which to bind).
+See the [Dumat project](https://github.com/detly/dumat) for a web interface.
