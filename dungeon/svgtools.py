@@ -1,35 +1,32 @@
+# Copyright 2014 Jason Heeris, jason.heeris@gmail.com
+# Copyright 2005,2007 Aaron Spike, aaron@ekips.org
+# Copyright 2006 Jean-Francois Barraud, barraud@math.univ-lille1.fr
+# Copyright 2010 Alvin Penner, penner@vaxxine.com
+# Copyright 2001-2002 Matt Chisholm matt@theory.org
+# Copyright 2008 Joel Holdsworth joel@airwebreathe.org.uk
+#     for AP
+# Copyright 2014 Jason Heeris, jason.heeris@gmail.com
+# 
+# This file is part of the dungeon excavator ("dumat").
+# 
+# Dumat is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by the Free
+# Software Foundation, either version 3 of the License, or (at your option) any
+# later version.
+#
+# Dumat is distributed in the hope that it will be useful, but WITHOUT ANY
+# WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
+# A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License along with
+# dumat. If not, see <http://www.gnu.org/licenses/>.
 """
-Copyright 2014 Jason Heeris, jason.heeris@gmail.com
-Copyright 2005,2007 Aaron Spike, aaron@ekips.org
-Copyright 2006 Jean-Francois Barraud, barraud@math.univ-lille1.fr
-Copyright 2010 Alvin Penner, penner@vaxxine.com
-Copyright 2001-2002 Matt Chisholm matt@theory.org
-Copyright 2008 Joel Holdsworth joel@airwebreathe.org.uk
-    for AP
-
-This file is part of the dungeon excavator.
-
-The dungeon excavator is free software: you can redistribute it and/or modify it
-under the terms of the GNU General Public License as published by the Free
-Software Foundation, either version 3 of the License, or (at your option) any
-later version.
-
-The dungeon excavator is distributed in the hope that it will be useful, but
-WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
-FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
-details.
-
-You should have received a copy of the GNU General Public License along with the
-dungeon excavator. If not, see <http://www.gnu.org/licenses/>.
-
-----
-
 This is a collection of utilities adapted from Inkscape's extensions. Everything
 here has been taken from the "inkscape/share/extensions" directory. Individual
 copyright information and origin is documented with each function just in case
 it's useful.
 """
-from dungeon import bezmisc, cubicsuperpath, simplepath
+from dumat import bezmisc, cubicsuperpath, simplepath
 import random, math, copy, re
 
 # From inkscape/share/extensions/addnodes.py.

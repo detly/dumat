@@ -1,4 +1,4 @@
-# Dungeon excavator
+# Dumat, a dungeon excavator
 
 ## Overview
 
@@ -41,7 +41,7 @@ command-line script.
 
 This assumes you have installed the package via `pip` (eg. `pip install -e .`)
 or setuptools, and therefore have the `excavate` script available. If not,
-`python -m dungeon` can replace `excavate`.
+`python -m dumat` can replace `excavate`.
 
 ```
 excavate -s 100 ground.png wall.png floorplan.png map.svg
