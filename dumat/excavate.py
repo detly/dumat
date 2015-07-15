@@ -220,7 +220,7 @@ def insert_and_tile_raster(image_data, map_doc, dimensions, image_id, layer_id):
 
 def post_render_svg(room_data):
     """ Render to SVG. """
-    return room, 'image/svg+xml'
+    return room_data, 'image/svg+xml'
 
 def post_render_png(room_data):
     """ Render to PNG """
